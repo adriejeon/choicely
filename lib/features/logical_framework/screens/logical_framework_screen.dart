@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_spacing.dart';
-import '../../../core/widgets/primary_button.dart';
-import '../../../core/widgets/section_header.dart';
 import '../providers/logical_framework_provider.dart';
 
 class LogicalFrameworkScreen extends ConsumerStatefulWidget {

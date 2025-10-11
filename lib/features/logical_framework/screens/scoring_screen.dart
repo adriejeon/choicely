@@ -5,9 +5,11 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/primary_button.dart';
+import '../../../core/widgets/language_selector.dart';
 import '../providers/logical_framework_provider.dart';
 import '../models/comparison_item.dart';
 import '../../concern/providers/concern_provider.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ScoringScreen extends ConsumerStatefulWidget {
   final String concernId;
@@ -55,6 +57,7 @@ class _ScoringScreenState extends ConsumerState<ScoringScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final frameworkAsync = ref.watch(
       logicalFrameworkProvider(widget.concernId),
     );
@@ -71,9 +74,7 @@ class _ScoringScreenState extends ConsumerState<ScoringScreen>
       child: frameworkAsync.when(
         data: (framework) {
           if (framework == null) {
-            return const Scaffold(
-              body: Center(child: Text('프레임워크를 찾을 수 없습니다')),
-            );
+            return Scaffold(body: Center(child: Text(l10n.frameworkNotFound)));
           }
 
           return concernsAsync.when(
@@ -84,12 +85,13 @@ class _ScoringScreenState extends ConsumerState<ScoringScreen>
               final choices = concern.choices;
 
               if (choices.isEmpty) {
-                return Scaffold(body: Center(child: Text('선택지가 없습니다')));
+                return Scaffold(body: Center(child: Text(l10n.noChoices)));
               }
 
               return Scaffold(
                 appBar: AppBar(
-                  title: const Text('점수 매기기'),
+                  title: Text(l10n.scoring),
+                  actions: const [LanguageSelector()],
                   bottom: PreferredSize(
                     preferredSize: const Size.fromHeight(kToolbarHeight),
                     child: Container(
@@ -112,8 +114,8 @@ class _ScoringScreenState extends ConsumerState<ScoringScreen>
                         tabAlignment: TabAlignment.fill,
                         indicatorPadding: EdgeInsets.zero,
                         tabs: [
-                          Tab(text: '가중치 설정'),
-                          Tab(text: '점수 매기기'),
+                          Tab(text: l10n.weightSettings),
+                          Tab(text: l10n.scoring),
                         ],
                       ),
                     ),
@@ -124,23 +126,34 @@ class _ScoringScreenState extends ConsumerState<ScoringScreen>
                     : TabBarView(
                         controller: _tabController,
                         children: [
-                          _buildWeightTab(choices),
-                          _buildScoringTab(choices),
+                          _buildWeightTab(choices, l10n),
+                          _buildScoringTab(choices, l10n),
                         ],
                       ),
-                bottomNavigationBar: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.paddingLarge,
-                      AppSpacing.paddingLarge,
-                      AppSpacing.paddingLarge,
-                      AppSpacing.paddingXLarge,
+                bottomNavigationBar: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.grey00,
+                    border: Border(
+                      top: BorderSide(color: AppColors.grey30, width: 1),
                     ),
-                    child: PrimaryButton(
-                      text: '결과 보기',
-                      onPressed: () {
-                        context.push('/concern/${widget.concernId}/result');
-                      },
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.paddingLarge,
+                        AppSpacing.paddingLarge,
+                        AppSpacing.paddingLarge,
+                        AppSpacing.paddingXLarge + AppSpacing.paddingMedium,
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: PrimaryButton(
+                          text: l10n.viewResults,
+                          onPressed: () {
+                            context.push('/concern/${widget.concernId}/result');
+                          },
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -149,19 +162,21 @@ class _ScoringScreenState extends ConsumerState<ScoringScreen>
             loading: () => const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
-            error: (error, stack) =>
-                Scaffold(body: Center(child: Text('오류: $error'))),
+            error: (error, stack) => Scaffold(
+              body: Center(child: Text('${l10n.errorOccurred}: $error')),
+            ),
           );
         },
         loading: () =>
             const Scaffold(body: Center(child: CircularProgressIndicator())),
-        error: (error, stack) =>
-            Scaffold(body: Center(child: Text('오류: $error'))),
+        error: (error, stack) => Scaffold(
+          body: Center(child: Text('${l10n.errorOccurred}: $error')),
+        ),
       ),
     );
   }
 
-  Widget _buildWeightTab(List<String> choices) {
+  Widget _buildWeightTab(List<String> choices, AppLocalizations l10n) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.paddingLarge,
@@ -170,10 +185,10 @@ class _ScoringScreenState extends ConsumerState<ScoringScreen>
         AppSpacing.paddingXLarge,
       ),
       children: [
-        Text('가중치 설정', style: AppTextStyles.headline3),
+        Text(l10n.weightSettings, style: AppTextStyles.headline3),
         const SizedBox(height: AppSpacing.paddingSmall),
         Text(
-          '각 항목의 중요도를 1-10 사이로 설정해주세요',
+          l10n.weightSettingsDesc,
           style: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.textSecondary,
           ),
@@ -237,13 +252,13 @@ class _ScoringScreenState extends ConsumerState<ScoringScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '낮음',
+                        l10n.low,
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.textTertiary,
                         ),
                       ),
                       Text(
-                        '높음',
+                        l10n.high,
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.textTertiary,
                         ),
@@ -259,7 +274,7 @@ class _ScoringScreenState extends ConsumerState<ScoringScreen>
     );
   }
 
-  Widget _buildScoringTab(List<String> choices) {
+  Widget _buildScoringTab(List<String> choices, AppLocalizations l10n) {
     final labels = ['A', 'B', 'C', 'D'];
     final colors = [
       AppColors.primary,
@@ -276,10 +291,10 @@ class _ScoringScreenState extends ConsumerState<ScoringScreen>
         AppSpacing.paddingXLarge,
       ),
       children: [
-        Text('점수 매기기', style: AppTextStyles.headline3),
+        Text(l10n.scoring, style: AppTextStyles.headline3),
         const SizedBox(height: AppSpacing.paddingSmall),
         Text(
-          '각 항목별로 선택지의 점수를 매겨주세요 (1-10)',
+          l10n.scoringDesc,
           style: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.textSecondary,
           ),
@@ -322,7 +337,7 @@ class _ScoringScreenState extends ConsumerState<ScoringScreen>
                           ),
                         ),
                         child: Text(
-                          '가중치 ${item.weight.toStringAsFixed(0)}',
+                          '${l10n.weight} ${item.weight.toStringAsFixed(0)}',
                           style: AppTextStyles.caption.copyWith(
                             color: AppColors.textSecondary,
                           ),

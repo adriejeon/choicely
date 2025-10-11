@@ -29,6 +29,8 @@ dependencies:
   fl_chart: ^0.69.2
 
   # 다국어
+  flutter_localizations:
+    sdk: flutter
   intl: ^0.20.1
 
   # 유틸리티
@@ -52,6 +54,7 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   uses-material-design: true
+  generate: true
 
   assets:
     - assets/images/

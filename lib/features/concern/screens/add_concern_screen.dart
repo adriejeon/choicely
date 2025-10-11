@@ -6,10 +6,15 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/section_header.dart';
+import '../../../core/widgets/language_selector.dart';
 import '../providers/concern_provider.dart';
+import '../models/concern_template.dart';
+import '../../../l10n/app_localizations.dart';
 
 class AddConcernScreen extends ConsumerStatefulWidget {
-  const AddConcernScreen({super.key});
+  final ConcernTemplate? template;
+
+  const AddConcernScreen({super.key, this.template});
 
   @override
   ConsumerState<AddConcernScreen> createState() => _AddConcernScreenState();
@@ -22,11 +27,21 @@ class _AddConcernScreenState extends ConsumerState<AddConcernScreen> {
   final List<TextEditingController> _choiceControllers = [];
   int _numberOfChoices = 2; // 기본값: 2개
   bool _isLoading = false;
+  ConcernTemplate? _selectedTemplate;
 
   @override
   void initState() {
     super.initState();
+    // 기본값을 명시적으로 2개로 설정
+    _numberOfChoices = 2;
     _updateChoiceControllers();
+
+    // 템플릿이 제공된 경우 자동으로 채우기
+    if (widget.template != null) {
+      _selectedTemplate = widget.template!;
+      _numberOfChoices = widget.template!.exampleChoices.length;
+      _updateChoiceControllers();
+    }
   }
 
   void _updateChoiceControllers() {
@@ -67,13 +82,16 @@ class _AddConcernScreenState extends ConsumerState<AddConcernScreen> {
               title: _titleController.text.trim(),
               description: _descriptionController.text.trim(),
               choices: choices,
+              templateId: _selectedTemplate?.id,
             );
 
         if (mounted) {
-          context.pop();
+          // 홈 화면으로 이동
+          context.go('/');
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('고민이 추가되었습니다'),
+              content: Text(l10n.concernAdded),
               backgroundColor: AppColors.grey80,
             ),
           );
@@ -99,8 +117,13 @@ class _AddConcernScreenState extends ConsumerState<AddConcernScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('새로운 고민')),
+      appBar: AppBar(
+        title: Text(l10n.addConcern),
+        actions: const [LanguageSelector()],
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -112,20 +135,22 @@ class _AddConcernScreenState extends ConsumerState<AddConcernScreen> {
           ),
           children: [
             SectionHeader(
-              title: '무엇이 고민이신가요?',
-              subtitle: '심층적으로 고민을 해결해 보세요.',
+              title: l10n.whatIsYourConcern,
+              subtitle: l10n.solveConcernDeeply,
               titleStyle: AppTextStyles.headline3,
             ),
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: '고민 제목',
-                hintText: '예: A회사와 B회사 중 어디로 갈까?',
+              decoration: InputDecoration(
+                labelText: l10n.concernTitle,
+                hintText:
+                    _selectedTemplate?.getLocalizedExampleTitle(l10n) ??
+                    l10n.concernTitleHint,
               ),
               style: AppTextStyles.bodyMedium,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return '제목을 입력해주세요';
+                  return l10n.titleRequired;
                 }
                 return null;
               },
@@ -133,24 +158,26 @@ class _AddConcernScreenState extends ConsumerState<AddConcernScreen> {
             const SizedBox(height: AppSpacing.paddingMedium),
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: '상세 설명',
-                hintText: '고민에 대해 자세히 설명해주세요',
+              decoration: InputDecoration(
+                labelText: l10n.description,
+                hintText:
+                    _selectedTemplate?.getLocalizedExampleDescription(l10n) ??
+                    l10n.descriptionHint,
                 alignLabelWithHint: true,
               ),
               style: AppTextStyles.bodyMedium,
               maxLines: 8,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return '설명을 입력해주세요';
+                  return l10n.descriptionRequired;
                 }
                 return null;
               },
             ),
             const SizedBox(height: AppSpacing.paddingLarge),
             SectionHeader(
-              title: '선택지 설정',
-              subtitle: '몇 가지 선택지를 두고 고민 중이신가요?',
+              title: l10n.optionSetting,
+              subtitle: l10n.howManyOptions,
               titleStyle: AppTextStyles.headline3,
             ),
             const SizedBox(height: AppSpacing.paddingMedium),
@@ -192,7 +219,7 @@ class _AddConcernScreenState extends ConsumerState<AddConcernScreen> {
                           ),
                         ),
                         child: Text(
-                          '$number개',
+                          l10n.numberOfOptions(number.toString()),
                           style: AppTextStyles.labelMedium.copyWith(
                             color: isSelected
                                 ? AppColors.grey00
@@ -207,10 +234,10 @@ class _AddConcernScreenState extends ConsumerState<AddConcernScreen> {
               }),
             ),
             const SizedBox(height: AppSpacing.paddingMedium),
-            ..._buildChoiceFields(),
+            ..._buildChoiceFields(l10n),
             const SizedBox(height: AppSpacing.paddingMedium),
             PrimaryButton(
-              text: '고민 추가하기',
+              text: l10n.addConcernButton,
               onPressed: _saveConcern,
               isLoading: _isLoading,
             ),
@@ -220,7 +247,7 @@ class _AddConcernScreenState extends ConsumerState<AddConcernScreen> {
     );
   }
 
-  List<Widget> _buildChoiceFields() {
+  List<Widget> _buildChoiceFields(AppLocalizations l10n) {
     final labels = ['A', 'B', 'C', 'D'];
     final colors = [
       AppColors.primary,
@@ -228,7 +255,16 @@ class _AddConcernScreenState extends ConsumerState<AddConcernScreen> {
       Colors.orange,
       Colors.purple,
     ];
-    final hints = ['예: A 회사로 이직', '예: B 회사로 이직', '예: 현재 회사에 남기', '예: 창업하기'];
+
+    // 템플릿별 예시 선택지를 placeholder로 사용
+    final hints =
+        _selectedTemplate?.getLocalizedExampleChoices(l10n) ??
+        [
+          l10n.optionHint1,
+          l10n.optionHint2,
+          l10n.optionHint3,
+          l10n.optionHint4,
+        ];
 
     return List.generate(_numberOfChoices, (index) {
       return Padding(
@@ -265,7 +301,7 @@ class _AddConcernScreenState extends ConsumerState<AddConcernScreen> {
                   ),
                   const SizedBox(width: AppSpacing.paddingSmall),
                   Text(
-                    '선택지 ${labels[index]}',
+                    l10n.optionLabel(labels[index]),
                     style: AppTextStyles.labelMedium,
                   ),
                 ],
@@ -281,7 +317,7 @@ class _AddConcernScreenState extends ConsumerState<AddConcernScreen> {
                 style: AppTextStyles.bodyMedium,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return '선택지 ${labels[index]}를 입력해주세요';
+                    return '${l10n.optionLabel(labels[index])} ${l10n.titleRequired.toLowerCase()}';
                   }
                   return null;
                 },

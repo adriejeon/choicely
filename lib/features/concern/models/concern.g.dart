@@ -26,13 +26,15 @@ class ConcernAdapter extends TypeAdapter<Concern> {
       logicalFrameworkId: fields[6] as String?,
       intuitiveAdviceId: fields[7] as String?,
       choices: (fields[8] as List?)?.cast<String>(),
+      selectedChoiceIndex: fields[9] as int?,
+      templateId: fields[10] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Concern obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +52,11 @@ class ConcernAdapter extends TypeAdapter<Concern> {
       ..writeByte(7)
       ..write(obj.intuitiveAdviceId)
       ..writeByte(8)
-      ..write(obj.choices);
+      ..write(obj.choices)
+      ..writeByte(9)
+      ..write(obj.selectedChoiceIndex)
+      ..writeByte(10)
+      ..write(obj.templateId);
   }
 
   @override

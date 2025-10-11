@@ -39,6 +39,7 @@ class ConcernNotifier extends StateNotifier<AsyncValue<List<Concern>>> {
     required String title,
     required String description,
     required List<String> choices,
+    String? templateId,
   }) async {
     try {
       final box = await ref.read(concernBoxProvider.future);
@@ -52,6 +53,7 @@ class ConcernNotifier extends StateNotifier<AsyncValue<List<Concern>>> {
         updatedAt: now,
         status: ConcernStatus.active.name,
         choices: choices,
+        templateId: templateId,
       );
 
       await box.put(concern.id, concern);
@@ -105,5 +107,24 @@ class ConcernNotifier extends StateNotifier<AsyncValue<List<Concern>>> {
   /// ID로 고민 가져오기
   Concern? getConcernById(String id) {
     return state.value?.firstWhere((c) => c.id == id);
+  }
+
+  /// 최종 선택 완료
+  Future<void> finalizeConcern(String id, int selectedChoiceIndex) async {
+    try {
+      final box = await ref.read(concernBoxProvider.future);
+      final concern = box.get(id);
+      if (concern != null) {
+        final updatedConcern = concern.copyWith(
+          status: ConcernStatus.resolved.name,
+          selectedChoiceIndex: selectedChoiceIndex,
+          updatedAt: DateTime.now(),
+        );
+        await box.put(id, updatedConcern);
+        await _loadConcerns();
+      }
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
   }
 }

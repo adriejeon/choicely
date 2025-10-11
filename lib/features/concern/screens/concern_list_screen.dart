@@ -5,18 +5,54 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/animations/fade_in_transition.dart';
+import '../../../core/widgets/language_selector.dart';
 import '../providers/concern_provider.dart';
 import '../widgets/concern_card.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ConcernListScreen extends ConsumerWidget {
   const ConcernListScreen({super.key});
 
+  Future<void> _showDeleteDialog(
+    BuildContext context,
+    WidgetRef ref,
+    concern,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteConcern),
+        content: Text(l10n.deleteConcernMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(concernListProvider.notifier).deleteConcern(concern.id);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final concernsAsync = ref.watch(concernListProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('나의 고민')),
+      appBar: AppBar(
+        title: Text(l10n.concernList),
+        actions: const [LanguageSelector()],
+      ),
       body: concernsAsync.when(
         data: (concerns) {
           if (concerns.isEmpty) {
@@ -31,14 +67,14 @@ class ConcernListScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.paddingLarge),
                   Text(
-                    '고민이 없습니다',
+                    l10n.noConcerns,
                     style: AppTextStyles.headline4.copyWith(
                       color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.paddingSmall),
                   Text(
-                    '새로운 고민을 추가해보세요',
+                    l10n.addNewConcern,
                     style: AppTextStyles.bodyMedium.copyWith(
                       color: AppColors.textTertiary,
                     ),
@@ -49,7 +85,12 @@ class ConcernListScreen extends ConsumerWidget {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(AppSpacing.paddingMedium),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.paddingMedium,
+              AppSpacing.paddingMedium,
+              AppSpacing.paddingMedium,
+              AppSpacing.paddingXLarge * 4,
+            ),
             itemCount: concerns.length,
             itemBuilder: (context, index) {
               final concern = concerns[index];
@@ -60,20 +101,22 @@ class ConcernListScreen extends ConsumerWidget {
                   onTap: () {
                     context.push('/concern/${concern.id}');
                   },
+                  onDelete: () => _showDeleteDialog(context, ref, concern),
                 ),
               );
             },
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('오류가 발생했습니다: $error')),
+        error: (error, stack) =>
+            Center(child: Text('${l10n.errorOccurred}: ${error.toString()}')),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          context.push('/add-concern');
+          context.push('/template-selection');
         },
         icon: const Icon(Icons.add),
-        label: const Text('고민 추가'),
+        label: Text(l10n.addConcernButton),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.grey00,
         elevation: 0,

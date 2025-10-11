@@ -4,15 +4,23 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../models/concern.dart';
 import 'package:intl/intl.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ConcernCard extends StatelessWidget {
   final Concern concern;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
-  const ConcernCard({super.key, required this.concern, required this.onTap});
+  const ConcernCard({
+    super.key,
+    required this.concern,
+    required this.onTap,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final dateFormat = DateFormat('yyyy.MM.dd');
 
     return Card(
@@ -27,7 +35,7 @@ class ConcernCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  _buildStatusBadge(),
+                  _buildStatusBadge(l10n),
                   const SizedBox(width: AppSpacing.paddingSmall),
                   Expanded(
                     child: Text(
@@ -37,6 +45,23 @@ class ConcernCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (onDelete != null) ...[
+                    const SizedBox(width: AppSpacing.paddingSmall),
+                    IconButton(
+                      onPressed: onDelete,
+                      icon: Icon(
+                        Icons.delete_outline,
+                        color: AppColors.error,
+                        size: 18,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 24,
+                        minHeight: 24,
+                      ),
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: AppSpacing.paddingSmall),
@@ -48,6 +73,42 @@ class ConcernCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
+              if (concern.statusEnum == ConcernStatus.resolved &&
+                  concern.selectedChoiceIndex != null &&
+                  concern.selectedChoiceIndex! < concern.choices.length) ...[
+                const SizedBox(height: AppSpacing.paddingMedium),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.paddingSmall),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0EAE14).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
+                    border: Border.all(
+                      color: const Color(0xFF0EAE14).withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        size: 16,
+                        color: const Color(0xFF0EAE14),
+                      ),
+                      const SizedBox(width: AppSpacing.paddingSmall),
+                      Expanded(
+                        child: Text(
+                          '${l10n.selectedChoice}: ${['A', 'B', 'C', 'D'][concern.selectedChoiceIndex!]} - ${concern.choices[concern.selectedChoiceIndex!]}',
+                          style: AppTextStyles.caption.copyWith(
+                            color: const Color(0xFF0EAE14),
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: AppSpacing.paddingMedium),
               Row(
                 children: [
@@ -86,7 +147,7 @@ class ConcernCard extends StatelessWidget {
                           ),
                           const SizedBox(width: AppSpacing.xs),
                           Text(
-                            '논리',
+                            l10n.logicalAnalysis,
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
@@ -120,7 +181,7 @@ class ConcernCard extends StatelessWidget {
                           ),
                           const SizedBox(width: AppSpacing.xs),
                           Text(
-                            '직관',
+                            l10n.intuitiveAnalysis,
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.mystical,
                               fontWeight: FontWeight.w600,
@@ -138,22 +199,22 @@ class ConcernCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge() {
+  Widget _buildStatusBadge(AppLocalizations l10n) {
     Color color;
     String label;
 
     switch (concern.statusEnum) {
       case ConcernStatus.active:
         color = AppColors.info;
-        label = '진행중';
+        label = l10n.statusInProgress;
         break;
       case ConcernStatus.resolved:
-        color = AppColors.success;
-        label = '해결';
+        color = const Color(0xFF0EAE14);
+        label = l10n.statusResolved;
         break;
       case ConcernStatus.archived:
         color = AppColors.grey50;
-        label = '보관';
+        label = l10n.statusArchived;
         break;
     }
 

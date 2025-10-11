@@ -39,6 +39,12 @@ class Concern extends HiveObject {
   @HiveField(8)
   late List<String> choices; // 선택지 리스트 (1~4개)
 
+  @HiveField(9)
+  int? selectedChoiceIndex; // 최종 선택한 선택지 인덱스
+
+  @HiveField(10)
+  String? templateId; // 사용된 템플릿 ID
+
   Concern({
     required this.id,
     required this.title,
@@ -49,6 +55,8 @@ class Concern extends HiveObject {
     this.logicalFrameworkId,
     this.intuitiveAdviceId,
     List<String>? choices,
+    this.selectedChoiceIndex,
+    this.templateId,
   }) : choices = choices ?? [];
 
   // Status getter/setter
@@ -80,6 +88,8 @@ class Concern extends HiveObject {
     String? logicalFrameworkId,
     String? intuitiveAdviceId,
     List<String>? choices,
+    int? selectedChoiceIndex,
+    String? templateId,
   }) {
     return Concern(
       id: id ?? this.id,
@@ -91,6 +101,8 @@ class Concern extends HiveObject {
       logicalFrameworkId: logicalFrameworkId ?? this.logicalFrameworkId,
       intuitiveAdviceId: intuitiveAdviceId ?? this.intuitiveAdviceId,
       choices: choices ?? this.choices,
+      selectedChoiceIndex: selectedChoiceIndex ?? this.selectedChoiceIndex,
+      templateId: templateId ?? this.templateId,
     );
   }
 }

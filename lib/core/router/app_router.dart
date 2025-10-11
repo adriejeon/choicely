@@ -3,16 +3,20 @@ import 'package:go_router/go_router.dart';
 import '../../features/concern/screens/concern_list_screen.dart';
 import '../../features/concern/screens/concern_detail_screen.dart';
 import '../../features/concern/screens/add_concern_screen.dart';
+import '../../features/concern/screens/template_selection_screen.dart';
+import '../../features/concern/models/concern_template.dart';
 import '../../features/logical_framework/screens/logical_framework_screen.dart';
 import '../../features/logical_framework/screens/comparison_setup_screen.dart';
 import '../../features/logical_framework/screens/scoring_screen.dart';
 import '../../features/logical_framework/screens/result_screen.dart';
 import '../../features/intuitive_advice/screens/tarot_screen.dart';
+import '../../features/intuitive_advice/screens/tarot_card_selection_screen.dart';
 
 /// 앱 라우터
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
+    debugLogDiagnostics: true,
     routes: [
       // 홈 - 고민 목록
       GoRoute(
@@ -22,12 +26,29 @@ class AppRouter {
             _buildPageWithAnimation(context, state, const ConcernListScreen()),
       ),
 
+      // 템플릿 선택
+      GoRoute(
+        path: '/template-selection',
+        name: 'template-selection',
+        pageBuilder: (context, state) => _buildPageWithAnimation(
+          context,
+          state,
+          const TemplateSelectionScreen(),
+        ),
+      ),
+
       // 고민 추가
       GoRoute(
         path: '/add-concern',
         name: 'add-concern',
-        pageBuilder: (context, state) =>
-            _buildPageWithAnimation(context, state, const AddConcernScreen()),
+        pageBuilder: (context, state) {
+          final template = state.extra as ConcernTemplate?;
+          return _buildPageWithAnimation(
+            context,
+            state,
+            AddConcernScreen(template: template),
+          );
+        },
       ),
 
       // 고민 상세
@@ -110,6 +131,27 @@ class AppRouter {
             context,
             state,
             TarotScreen(concernId: concernId),
+          );
+        },
+      ),
+
+      // 타로 카드 선택
+      GoRoute(
+        path: '/concern/:id/tarot/selection',
+        name: 'tarot-selection',
+        pageBuilder: (context, state) {
+          final concernId = state.pathParameters['id']!;
+          final extra = state.extra as Map<String, dynamic>?;
+          final choiceName = extra?['choiceName'] ?? '';
+          final choiceIndex = extra?['choiceIndex'] ?? 0;
+          return _buildPageWithAnimation(
+            context,
+            state,
+            TarotCardSelectionScreen(
+              concernId: concernId,
+              choiceName: choiceName,
+              choiceIndex: choiceIndex,
+            ),
           );
         },
       ),
