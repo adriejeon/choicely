@@ -7,6 +7,7 @@ import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/section_header.dart';
 import '../../../core/widgets/language_selector.dart';
+import '../../../core/ads/admob_handler.dart';
 import '../providers/concern_provider.dart';
 import '../models/concern_template.dart';
 import '../../../l10n/app_localizations.dart';
@@ -86,6 +87,23 @@ class _AddConcernScreenState extends ConsumerState<AddConcernScreen> {
             );
 
         if (mounted) {
+          // 전면 광고 표시
+          try {
+            final admobHandler = AdmobHandler();
+            if (admobHandler.isInterstitialAdLoaded) {
+              await admobHandler.showInterstitialAd();
+            } else {
+              // 광고가 로드되지 않은 경우 미리 로드
+              await admobHandler.loadInterstitialAd();
+              if (admobHandler.isInterstitialAdLoaded) {
+                await admobHandler.showInterstitialAd();
+              }
+            }
+          } catch (e) {
+            // 광고 로드/표시 실패 시 무시하고 계속 진행
+            print('전면 광고 표시 실패: $e');
+          }
+
           // 홈 화면으로 이동
           context.go('/');
           final l10n = AppLocalizations.of(context)!;

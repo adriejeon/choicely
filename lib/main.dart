@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/providers/locale_provider.dart';
+import 'core/ads/admob_handler.dart';
 import 'features/concern/models/concern.dart';
 import 'features/concern/models/analysis_result.dart';
 import 'features/logical_framework/models/comparison_item.dart';
@@ -22,6 +23,13 @@ void main() async {
   Hive.registerAdapter(AnalysisResultAdapter());
   Hive.registerAdapter(ComparisonItemAdapter());
   Hive.registerAdapter(LogicalFrameworkAdapter());
+
+  // AdMob 초기화
+  final admobHandler = AdmobHandler();
+  await admobHandler.initialize();
+
+  // 전면 광고 미리 로드
+  admobHandler.preloadNextAd();
 
   runApp(const ProviderScope(child: MyApp()));
 }

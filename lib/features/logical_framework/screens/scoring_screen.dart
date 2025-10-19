@@ -6,6 +6,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/language_selector.dart';
+import '../../../core/ads/admob_handler.dart';
 import '../providers/logical_framework_provider.dart';
 import '../models/comparison_item.dart';
 import '../../concern/providers/concern_provider.dart';
@@ -149,8 +150,30 @@ class _ScoringScreenState extends ConsumerState<ScoringScreen>
                         width: double.infinity,
                         child: PrimaryButton(
                           text: l10n.viewResults,
-                          onPressed: () {
-                            context.push('/concern/${widget.concernId}/result');
+                          onPressed: () async {
+                            // 전면 광고 표시
+                            try {
+                              final admobHandler = AdmobHandler();
+                              if (admobHandler.isInterstitialAdLoaded) {
+                                await admobHandler.showInterstitialAd();
+                              } else {
+                                // 광고가 로드되지 않은 경우 미리 로드
+                                await admobHandler.loadInterstitialAd();
+                                if (admobHandler.isInterstitialAdLoaded) {
+                                  await admobHandler.showInterstitialAd();
+                                }
+                              }
+                            } catch (e) {
+                              // 광고 로드/표시 실패 시 무시하고 계속 진행
+                              print('전면 광고 표시 실패: $e');
+                            }
+
+                            // 결과 화면으로 이동
+                            if (mounted) {
+                              context.push(
+                                '/concern/${widget.concernId}/result',
+                              );
+                            }
                           },
                         ),
                       ),

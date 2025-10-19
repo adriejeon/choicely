@@ -2,7 +2,7 @@ name: choicely
 description: "고민 해결을 위한 직관과 논리 분석 앱"
 publish_to: "none"
 
-version: 1.0.0+1
+version: 1.1.0+1
 
 environment:
   sdk: ^3.9.0
@@ -35,9 +35,13 @@ dependencies:
 
   # 유틸리티
   uuid: ^4.5.1
+  package_info_plus: ^8.0.0
 
   # 아이콘
   lucide_icons: ^0.257.0
+
+  # 광고
+  google_mobile_ads: ^5.1.0
 
 dev_dependencies:
   flutter_test:

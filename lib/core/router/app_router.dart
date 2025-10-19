@@ -11,6 +11,7 @@ import '../../features/logical_framework/screens/scoring_screen.dart';
 import '../../features/logical_framework/screens/result_screen.dart';
 import '../../features/intuitive_advice/screens/tarot_screen.dart';
 import '../../features/intuitive_advice/screens/tarot_card_selection_screen.dart';
+import '../screens/ad_example_screen.dart';
 
 /// 앱 라우터
 class AppRouter {
@@ -154,6 +155,14 @@ class AppRouter {
             ),
           );
         },
+      ),
+
+      // AdMob 예시 화면
+      GoRoute(
+        path: '/ad-example',
+        name: 'ad-example',
+        pageBuilder: (context, state) =>
+            _buildPageWithAnimation(context, state, const AdExampleScreen()),
       ),
     ],
   );

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_spacing.dart';
+import '../../../core/ads/admob_handler.dart';
 import '../../../l10n/app_localizations.dart';
 
 class TarotCardSelectionScreen extends ConsumerStatefulWidget {
@@ -72,9 +73,28 @@ class _TarotCardSelectionScreenState
     _flipController.forward();
   }
 
-  void _showCardResult() {
-    // 바로 직관 분석 페이지로 돌아가기
-    _goBackToTarot();
+  Future<void> _showCardResult() async {
+    // 전면 광고 표시
+    try {
+      final admobHandler = AdmobHandler();
+      if (admobHandler.isInterstitialAdLoaded) {
+        await admobHandler.showInterstitialAd();
+      } else {
+        // 광고가 로드되지 않은 경우 미리 로드
+        await admobHandler.loadInterstitialAd();
+        if (admobHandler.isInterstitialAdLoaded) {
+          await admobHandler.showInterstitialAd();
+        }
+      }
+    } catch (e) {
+      // 광고 로드/표시 실패 시 무시하고 계속 진행
+      print('전면 광고 표시 실패: $e');
+    }
+
+    // 직관 분석 페이지로 돌아가기
+    if (mounted) {
+      _goBackToTarot();
+    }
   }
 
   void _goBackToTarot() {
