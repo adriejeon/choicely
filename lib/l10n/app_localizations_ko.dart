@@ -1090,4 +1090,7 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get oracleCard35Description =>
       '마음 깊이 자리 잡은 건강한 가치관으로 어려움을 이겨내고 극복할 수 있음을 보여줍니다. 무척 긍정적입니다.';
+
+  @override
+  String get share => '공유하기';
 }

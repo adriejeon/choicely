@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/language_selector.dart';
+import '../../../core/services/share_service.dart';
 import '../../concern/providers/concern_provider.dart';
 import '../../concern/providers/analysis_result_provider.dart';
 import '../../../l10n/app_localizations.dart';
@@ -580,6 +582,32 @@ class _TarotScreenState extends ConsumerState<TarotScreen> {
                       ),
                     ),
                   ),
+                  // 공유 버튼 (타로 카드가 뽑혔을 때만 표시)
+                  if (hasTarotCard) ...[
+                    IconButton(
+                      onPressed: () async {
+                        final concernsAsync = ref.read(concernListProvider);
+                        final concerns = concernsAsync.value;
+                        if (concerns != null) {
+                          final concern = concerns.firstWhere(
+                            (c) => c.id == widget.concernId,
+                          );
+                          final cardInfo = _oracleCardInfo[index]!;
+                          
+                          await ShareService.shareIntuitiveAnalysis(
+                            concernTitle: concern.title,
+                            optionName: choiceName,
+                            tarotCardName: cardInfo['name']!,
+                            analysisResult: cardInfo['description']!,
+                            context: context,
+                          );
+                        }
+                      },
+                      icon: const Icon(LucideIcons.share2, size: 20),
+                      color: AppColors.grey80,
+                      tooltip: l10n.share,
+                    ),
+                  ],
                   // 선택 상태 표시 (항상 표시)
                   Transform.scale(
                     scale: 1.3,

@@ -1128,4 +1128,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get oracleCard35Description =>
       'It shows that you can overcome and conquer difficulties with the healthy values deeply rooted in your heart. It\'s very positive.';
+
+  @override
+  String get share => 'Share';
 }

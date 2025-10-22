@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/language_selector.dart';
+import '../../../core/services/share_service.dart';
 import '../providers/logical_framework_provider.dart';
 import '../models/comparison_item.dart';
 import '../../concern/providers/concern_provider.dart';
@@ -141,7 +143,27 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.analysisResult),
-          actions: const [LanguageSelector()],
+          actions: [
+            // 공유 버튼
+            IconButton(
+              onPressed: () async {
+                final concernNotifier = ref.read(concernListProvider.notifier);
+                final concern = concernNotifier.getConcernById(widget.concernId);
+                
+                if (concern != null) {
+                  await ShareService.shareLogicalFrameworkAnalysis(
+                    concernTitle: concern.title,
+                    topOptionName: _choices[winnerIndex],
+                    topOptionScore: maxScore,
+                    context: context,
+                  );
+                }
+              },
+              icon: const Icon(LucideIcons.share2),
+              tooltip: l10n.share,
+            ),
+            const LanguageSelector(),
+          ],
         ),
         body: Column(
           children: [
